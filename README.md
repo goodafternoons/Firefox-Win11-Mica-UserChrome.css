@@ -1,0 +1,1 @@
+take everything, pop it in your [profile]/chrome folder, make sure that _Style.Win11-Mica-Acrylic_ is enabled in about:config for mica visuals to work. make sure to enable toolkit.legacyUserProfileCustomizations.stylesheets for userchrome.css to work
