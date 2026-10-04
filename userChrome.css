@@ -1,0 +1,66 @@
+@import "userChrome-mica.css";
+
+/* ==========================================================================
+   NATIVE VERTICAL TABS: DYNAMIC DRAG SPACE (ALL DRAG ZONES ACTIVE)
+   ========================================================================== */
+
+@media -moz-pref("sidebar.verticalTabs") {
+  
+  /* --- 1. BASE SETTINGS --- */
+  #nav-bar {
+    position: relative !important; /* Establishes the anchor for absolute positioning */
+    -moz-window-dragging: drag !important;
+  }
+  
+  /* Block dragging ONLY on specific interactive elements */
+  #nav-bar .toolbarbutton-1,
+  #nav-bar #urlbar-container,
+  #nav-bar #search-container,
+  #nav-bar #panelUI-button,
+  #nav-bar #nav-bar-overflow-button {
+    -moz-window-dragging: no-drag !important;
+  }
+
+  /* FIX: Explicitly force the flexible spaces (springs) to be draggable */
+  #nav-bar toolbarspring {
+    -moz-window-dragging: drag !important;
+  }
+
+  /* Pins window controls to the top right corner across both states */
+  .titlebar-buttonbox-container {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    z-index: 10 !important;
+  }
+
+  /* --- 2. WINDOWED STATE (Double Drag Space + Tucked Controls) --- */
+  :root:not([sizemode="maximized"]) #nav-bar {
+    padding-top: 28px !important;       /* Generous 28px drag zone */
+    padding-inline-end: 0px !important;  /* Allows tools to slide under window controls */
+  }
+  
+  :root:not([sizemode="maximized"]) .titlebar-buttonbox-container {
+    height: 28px !important;        /* Restricts control box height to the top padding area */
+    align-items: center !important;
+  }
+
+  /* --- 3. MAXIMIZED STATE (Ultra-Slim + Full Vertical Hitbox) --- */
+  :root[sizemode="maximized"] #nav-bar {
+    padding-top: 3px !important;         /* 3px hairline drag strip above the URL bar */
+    padding-inline-end: 138px !important; /* Perfect 138px side gap */
+  }
+  
+  :root[sizemode="maximized"] .titlebar-buttonbox-container {
+    bottom: 0 !important;                /* Force-stretches the container to the absolute bottom of the navbar */
+    height: auto !important;             /* Overrides any fixed heights to allow top-to-bottom stretching */
+    align-items: stretch !important;     /* Extends the button layouts fully */
+  }
+  
+  /* Ensures individual window buttons (Min/Max/Close) occupy 100% of that vertical space */
+  :root[sizemode="maximized"] .titlebar-button {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    height: 100% !important;
+  }
+}

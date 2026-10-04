@@ -1,0 +1,260 @@
+/* ==========================================================================
+   MICA ALT - PROOF OF CONCEPT (flat, single tone, no gradients)
+   Firefox 157 / Nova, Windows 11. Paint only; does not touch layout, so it
+   coexists with your drag-space CSS and vertical tabs.
+   ========================================================================== */
+
+:root {
+  /* The ONE tint used for all chrome. transparent = pure Mica Alt.
+     To test a tint, e.g. light: rgba(255,255,255,.3)  dark: rgba(0,0,0,.2) */
+  --mica-tint: transparent;
+  /* Tabs: active = opaque, inactive = light fill, hover in between */
+  --mica-selected: rgba(255, 255, 255, 0.75);
+  --mica-inactive: rgba(255, 255, 255, 0.30);
+  --mica-hover: rgba(255, 255, 255, 0.50);
+  /* Monochrome icon / text colour (replaces the theme's purple) */
+  --mica-icon: #3b3b40;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --mica-selected: rgba(255, 255, 255, 0.18);
+    --mica-inactive: rgba(255, 255, 255, 0.06);
+    --mica-hover: rgba(255, 255, 255, 0.11);
+    --mica-icon: #fbfbfe;
+  }
+}
+
+/* --- 1. KILL NOVA'S THEME GRADIENT / BACKGROUND IMAGE ---------------------
+   In Nova the default theme paints its backdrop on <body>/:root (and on the
+   toolbox for some themes), via these variables, so clear them all.        */
+:root,
+:root[lwtheme],
+:root[lwtheme-image] {
+  --lwt-header-image: none !important;
+  --lwt-additional-images: none !important;
+  --lwt-accent-color: transparent !important;
+  --lwt-accent-color-inactive: transparent !important;
+  --toolbar-bgcolor: var(--mica-tint) !important;
+  --toolbar-non-lwt-bgcolor: var(--mica-tint) !important;
+  --lwt-sidebar-background-color: transparent !important;
+  --sidebar-background-color: transparent !important;
+  --tabs-navbar-separator-color: transparent !important;
+}
+
+:root,
+:root[lwtheme],
+:root[lwtheme-image],
+body,
+#main-window,
+#browser,
+#navigator-toolbox,
+#titlebar,
+#TabsToolbar,
+#TabsToolbar-customization-target,
+#tabbrowser-tabs,
+#tabbrowser-arrowscrollbox,
+#nav-bar,
+#PersonalToolbar,
+#sidebar-main,
+#sidebar-box,
+#sidebar-header,
+sidebar-main {
+  appearance: none !important;
+  background: var(--mica-tint) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Gradients can also come from pseudo-elements on the toolbox/toolbars */
+#navigator-toolbox::before,
+#navigator-toolbox::after,
+#TabsToolbar::before,
+#TabsToolbar::after,
+#nav-bar::before,
+#nav-bar::after,
+body::before,
+body::after {
+  background: none !important;
+  background-image: none !important;
+}
+
+/* --- 2. TABS: readable but flat ------------------------------------------ */
+.tab-background {
+  background-image: none !important;
+  box-shadow: none !important;
+}
+.tabbrowser-tab:not([selected]) .tab-background {
+  background: var(--mica-inactive) !important;
+}
+.tabbrowser-tab:not([selected]):hover .tab-background {
+  /* neutral hover fill with a hint (22%) of your Windows accent mixed in */
+  background: color-mix(in srgb, AccentColor 22%, var(--mica-hover)) !important;
+}
+.tab-background[selected] { background: var(--mica-selected) !important; }
+
+/* --- 3. MONOCHROME ICONS (toolbar buttons, sidebar buttons) --------------
+   Default theme tints these with Nova's purple accent. Following the OS
+   light/dark via --mica-icon. Remove this block to get the purple back.   */
+:root,
+:root[lwtheme] {
+  --toolbar-color: var(--mica-icon) !important;
+  --toolbarbutton-icon-fill: var(--mica-icon) !important;
+  --lwt-toolbarbutton-icon-fill: var(--mica-icon) !important;
+  --icon-color: var(--mica-icon) !important;
+}
+
+/* --- 4. NOVA GRADIENT + COLLAPSED SIDEBAR (found via Browser Toolbox) -----
+   Nova paints the toolbox with --toolbox-background-image, which it sets
+   to --toolbox-background-gradient (violet to orange). Kill both.         */
+:root {
+  --toolbox-background-gradient: none !important;
+  --toolbox-background-image: none !important;
+  --toolbox-background-color-gradient-leading: transparent !important;
+  --toolbox-background-color-gradient-trailing: transparent !important;
+  --toolbox-background-color: var(--mica-tint) !important;
+  --toolbox-background-color-inactive: var(--mica-tint) !important;
+  /* Firefox fades the toolbox when the window is inactive but not the
+     sidebar, so toolbar and sidebar greys drifted apart. Disable the fade. */
+  --inactive-titlebar-opacity: 1 !important;
+}
+/* A collapsed sidebar is "expand-on-hover": #sidebar-container paints
+   itself from --sidebar-launcher-surface-color, which Firefox sets on the
+   element itself, so it must be overridden there, not on :root.           */
+:root #sidebar-container {
+  --sidebar-launcher-surface-color: var(--mica-tint) !important;
+  /* Clear here: the layer tone now comes from #browser behind it (section
+     5), so sidebar and page-corner gaps share one layer, with no stacking. */
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* --- 5. STEPPED TONES (Explorer-style) -------------------------------------
+   Tab strip / titlebar / sidebar stay clear (--mica-tint). The toolbar and
+   bookmarks bar get one layer tint on top (--mica-layer). WinUI values.
+   Set --mica-layer to transparent to go back to the flat look.            */
+:root {
+  --mica-layer: rgba(255, 255, 255, 0.50);
+  --mica-drag-h: 28px;                      /* your windowed drag strip */
+}
+:root[sizemode="maximized"] { --mica-drag-h: 3px; }  /* your maximised strip */
+@media (prefers-color-scheme: dark) {
+  :root { --mica-layer: rgba(255, 255, 255, 0.054); }
+}
+
+#nav-bar,
+#PersonalToolbar {
+  background: var(--mica-layer) !important;
+}
+
+/* Vertical tabs: #nav-bar is also the top drag row, so keep that strip
+   clear with a hard edge (a step, not a gradient) and layer below it.     */
+@media -moz-pref("sidebar.verticalTabs") {
+  #nav-bar {
+    background: linear-gradient(to bottom,
+      var(--mica-tint) var(--mica-drag-h),
+      var(--mica-layer) var(--mica-drag-h)) !important;
+  }
+}
+
+/* Content column: Nova rounds the page area's corners, and whatever sits
+   behind them shows through. Fill it with the layer tone so the corner
+   gaps match the toolbar/sidebar. The page itself is opaque, so only the
+   gaps are affected. Painted on one element only to avoid stacking.      */
+#browser {
+  background: var(--mica-layer) !important;
+}
+
+/* Maximised + vertical tabs: the drag strip is only a few px tall, so close
+   the visible step and let the whole navbar share the toolbar tone.
+   Windowed mode keeps the clear 28px strip.                              */
+@media -moz-pref("sidebar.verticalTabs") {
+  :root[sizemode="maximized"] #nav-bar {
+    background: var(--mica-layer) !important;
+  }
+}
+
+/* --- 6. WINDOWS ACCENT COLOUR (replaces Nova's violet) ---------------------
+   AccentColor = your Windows accent, updates live. Hover/selected fills are
+   translucent tints of it so they work over Mica in light and dark mode.
+   Tune the percentages here; delete this block to get violet back.        */
+:root {
+  --mica-accent-hover: color-mix(in srgb, AccentColor 22%, transparent);
+  --mica-accent-active: color-mix(in srgb, AccentColor 38%, transparent);
+
+  /* Toolbar buttons (back, forward, sidebar toggle, etc.) */
+  --toolbarbutton-background-color-hover: var(--mica-accent-hover) !important;
+  --toolbarbutton-background-color-active: var(--mica-accent-active) !important;
+  /* Generic buttons / selected states (derive from these) */
+  --button-background-color-hover: var(--mica-accent-hover) !important;
+  --button-background-color-active: var(--mica-accent-active) !important;
+  /* Primary accent: focus rings, primary buttons, attention dots */
+  --color-accent-primary: AccentColor !important;
+  --toolbarbutton-icon-fill-attention: AccentColor !important;
+}
+
+/* --- 7. TAB OUTLINE (contrast against the toolbar layer) -------------------
+   Outer ring (box-shadow, no inset) starts at the tab's edge and grows
+   outward, so it never changes tab size or layout.
+   Tune --mica-tab-outline-alpha / width; works for horizontal and vertical
+   (NativeTreeTabs with its "Tab background styling" off).                 */
+:root {
+  --mica-tab-outline-alpha: 12%;            /* inactive tabs */
+  --mica-tab-outline-alpha-selected: 35%;   /* selected tab */
+  --mica-tab-outline-width: 1px;
+  --mica-tab-outline: color-mix(in srgb, black var(--mica-tab-outline-alpha), transparent);
+  --mica-tab-outline-selected: color-mix(in srgb, black var(--mica-tab-outline-alpha-selected), transparent);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --mica-tab-outline: color-mix(in srgb, white var(--mica-tab-outline-alpha), transparent);
+    --mica-tab-outline-selected: color-mix(in srgb, white var(--mica-tab-outline-alpha-selected), transparent);
+  }
+}
+.tab-background {
+  box-shadow: 0 0 0 var(--mica-tab-outline-width) var(--mica-tab-outline) !important;
+}
+.tab-background[selected] {
+  box-shadow: 0 0 0 var(--mica-tab-outline-width) var(--mica-tab-outline-selected) !important;
+}
+
+/* --- 8. VERTICAL TABS: INACTIVE TABS MORE "MICA ALT" -----------------------
+   In vertical mode tabs sit on the sidebar's layer tone. CSS can't cut a
+   hole through that layer, so a faint dark tint pulls inactive tabs back
+   toward the bare Mica look. Selected tab is untouched. Raise the alpha
+   for more separation, lower it to get closer to the toolbar.            */
+@media -moz-pref("sidebar.verticalTabs") {
+  :root { --mica-inactive: rgba(0, 0, 0, 0.04); }
+  @media (prefers-color-scheme: dark) {
+    :root { --mica-inactive: rgba(0, 0, 0, 0.04); }
+  }
+}
+
+/* --- 9. CUSTOM MONOCHROME TOOLBAR ICONS FOR PINNED EXTENSIONS --------------
+   Toolbar buttons only (#nav-bar); the extensions menu keeps the developers'
+   own icons. Each SVG is used as a mask filled with --mica-icon, so only its
+   shape matters and it follows light/dark like your other toolbar icons.
+   Put the SVGs in  <profile>/chrome/icons/  with the names used below.
+   Button ids come from the extension id: lowercased, anything other than
+   a-z 0-9 _ - replaced by "_", plus "-browser-action".                    */
+#nav-bar :is(
+  [id="checkerplusforgmail_jasonsavard_com-browser-action"],
+  [id="jid1-bycqofyfmbmd9a_jetpack-browser-action"],
+  [id="fx_cast_matt_tf-browser-action"]
+) .toolbarbutton-icon {
+  list-style-image: none !important;   /* hide the developer's icon */
+  background-color: var(--mica-icon) !important;
+  width: 16px !important;
+  height: 16px !important;
+  mask-repeat: no-repeat !important;
+  mask-position: center !important;
+  mask-size: contain !important;
+}
+#nav-bar [id="checkerplusforgmail_jasonsavard_com-browser-action"] .toolbarbutton-icon {
+  mask-image: url("icons/checker-plus.svg") !important;
+}
+#nav-bar [id="jid1-bycqofyfmbmd9a_jetpack-browser-action"] .toolbarbutton-icon {
+  mask-image: url("icons/pushbullet.svg") !important;
+}
+#nav-bar [id="fx_cast_matt_tf-browser-action"] .toolbarbutton-icon {
+  mask-image: url("icons/fx-cast.svg") !important;
+}
